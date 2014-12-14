@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 PORT=${1=8080}
 DEFAULT_ROOT=$(cd $(dirname $0); pwd)
 PROJECT_ROOT=$PWD
@@ -59,7 +59,7 @@ http_response_dir(){
                       /bin/sed "s|.*|<li><a href='${REQUEST_PATH%/}/&'>&</a></li>|") \
             TITLE="$1" \
             render_file "${DEFAULT_ROOT}"/dir.html
-    fi    
+    fi
 }
 
 http_response_file(){
