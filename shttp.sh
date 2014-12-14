@@ -1,10 +1,11 @@
 #!/usr/bin/env zsh
 PATH="/bin:/usr/bin"
-PORT=${1=8080}
+: ${PORT:=8080}
+: ${LOG_FORMAT:='$TIMESTAMP $METHOD $REQUEST_PATH $USER_AGENT'}
+
 DEFAULT_ROOT=$(cd $(dirname $0); pwd)
 PROJECT_ROOT=$PWD
 FILE_INDEX="index.html"
-LOG_FORMAT="\$TIMESTAMP \$METHOD \$REQUEST_PATH \$USER_AGENT"
 
 if [ -e "${PROJECT_ROOT}"/404.html ];then
     FILE_404="${PROJECT_ROOT}"/"404.html"
