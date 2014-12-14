@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+PATH="/bin:/usr/bin"
 PORT=${1=8080}
 DEFAULT_ROOT=$(cd $(dirname $0); pwd)
 PROJECT_ROOT=$PWD
@@ -30,9 +31,9 @@ header_end(){
 }
 
 render_file(){
-    /bin/cat "$1" |
-        /bin/sed -e 's/\[\[.*\]\]/\n&\n/' |
-        /bin/sed -e 's/\[\[\(.*\)\]\]/echo $\1/eg'
+    cat "$1" |
+	sed -e 's/\[\[.*\]\]/\n&\n/' |
+	sed -e 's/\[\[\(.*\)\]\]/echo $\1/eg'
 }
 
 http_response_404(){
@@ -42,7 +43,7 @@ http_response_404(){
     }
     header_end
 
-    /bin/cat "$FILE_404"
+    cat "$FILE_404"
 }
 
 http_response_dir(){
@@ -55,8 +56,8 @@ http_response_dir(){
         }
         header_end
 
-        LIST=$(/bin/ls -a "$1" |
-                      /bin/sed "s|.*|<li><a href='${REQUEST_PATH%/}/&'>&</a></li>|") \
+        LIST=$(ls -a "$1" |
+                      sed "s|.*|<li><a href='${REQUEST_PATH%/}/&'>&</a></li>|") \
             TITLE="$1" \
             render_file "${DEFAULT_ROOT}"/dir.html
     fi
@@ -69,7 +70,7 @@ http_response_file(){
     }
     header_end
 
-    /bin/cat "$1"
+    cat "$1"
 }
 
 log(){
@@ -81,7 +82,7 @@ trap "echo exit;echo | nc localhost ${PORT}" EXIT
 
 log "server started at ${PORT}"
 while true; do
-    coproc /bin/nc -l ${PORT}
+    coproc nc -l ${PORT}
 
     read -p METHOD REQUEST_PATH PROTOCOL
     while IFS=" " read -p k v; do
