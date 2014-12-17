@@ -85,8 +85,8 @@ log "server started at ${PORT}"
 while true; do
     coproc nc -l ${PORT}
 
-    read -p METHOD REQUEST_PATH PROTOCOL
-    while IFS=" " read -p k v; do
+    read -rp METHOD REQUEST_PATH PROTOCOL
+    while IFS=" " read -rp k v; do
         if [ "$k" = "" ]; then
             break
         else
