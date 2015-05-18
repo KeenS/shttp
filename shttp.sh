@@ -24,7 +24,15 @@ content_type(){
     echo "Content-Type: $1"
 }
 content_type_of(){
-    echo "Content-Type: $(file --mime-type $1 | awk '{print $2}')"
+    echo "Content-Type: $(file --mime-type "$1" | awk '{print $2}')"
+}
+
+content_length(){
+    echo "Content-Length: $1"
+}
+
+content_length_of(){
+    echo "Content-Length: $(stat -f %z "$1")"
 }
 
 header_end(){
@@ -33,7 +41,6 @@ header_end(){
 
 render_file(){
     cat "$1" |
-	sed -e 's/\[\[.*\]\]/\n&\n/' |
 	sed -e 's/\[\[\(.*\)\]\]/echo $\1/eg'
 }
 
@@ -68,6 +75,7 @@ http_response_file(){
     header_begin 200
     {
         content_type_of "$1"
+        content_length_of "$1"
     }
     header_end
 
@@ -75,7 +83,7 @@ http_response_file(){
 }
 
 log(){
-    echo "$@"
+    echo "$@" >&3
 }
 
 debug_log(){
@@ -84,13 +92,41 @@ debug_log(){
     fi
 }
 
+doGET(){
+    if [ -e "$FILE_REQUEST" ];then
+        if [ -d "$FILE_REQUEST" ];then
+            http_response_dir "$FILE_REQUEST"
+        else
+            http_response_file "$FILE_REQUEST"
+        fi
+    else
+        http_response_404
+    fi
+    
+}
+
+doPOST(){
+    read -p -k "$CONTENT_LENGTH" input
+
+    header_begin 200
+    {
+        content_type_of "$1"
+        content_length_of "$1"
+    }
+    header_end
+}
+
+
 trap "echo exit;echo | nc localhost ${PORT};exit 1" HUP INT PIPE QUIT TERM
 trap "echo exit;echo | nc localhost ${PORT}" EXIT
 
+exec 3>&1
+
 log "server started at ${PORT}"
 while true; do
-    coproc nc -l ${PORT}
+    coproc nc -l ${PORT} || exit 1
 
+    exec >&p
     read -rp METHOD REQUEST_PATH PROTOCOL
     debug_log "$METHOD" "$REQUEST_PATH" "$PROTOCOL"
     while IFS=" " read -rp k v; do
@@ -107,15 +143,10 @@ while true; do
 
     eval log ${LOG_FORMAT}
     FILE_REQUEST="${PROJECT_ROOT}${REQUEST_PATH}"
-    if [ "$METHOD" = "GET" ];then
-        if [ -e "$FILE_REQUEST" ];then
-            if [ -d "$FILE_REQUEST" ];then
-                http_response_dir "$FILE_REQUEST" >&p
-            else
-                http_response_file "$FILE_REQUEST" >&p
-            fi
-        else
-            http_response_404 >&p
-        fi
-    fi
+
+    case "${METHOD}" in
+        GET) doGET;;
+        POST) doPOST;
+    esac
+
 done
