@@ -24,7 +24,7 @@ content_type(){
     echo "Content-Type: $1"
 }
 content_type_of(){
-    echo "Content-Type: $(file --mime-type $1 | cut -d\\  -f 2)"
+    echo "Content-Type: $(file --mime-type $1 | awk '{print $2}')"
 }
 
 header_end(){
@@ -78,6 +78,12 @@ log(){
     echo "$@"
 }
 
+debug_log(){
+    if [ "$DEBUG" != "" ]; then
+        echo "$@" >&2
+    fi
+}
+
 trap "echo exit;echo | nc localhost ${PORT};exit 1" HUP INT PIPE QUIT TERM
 trap "echo exit;echo | nc localhost ${PORT}" EXIT
 
@@ -86,7 +92,9 @@ while true; do
     coproc nc -l ${PORT}
 
     read -rp METHOD REQUEST_PATH PROTOCOL
+    debug_log "$METHOD" "$REQUEST_PATH" "$PROTOCOL"
     while IFS=" " read -rp k v; do
+        debug_log "$k" "$v"
         if [ "$k" = "" ]; then
             break
         else
