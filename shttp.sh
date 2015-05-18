@@ -24,7 +24,7 @@ content_type(){
     echo "Content-Type: $1"
 }
 content_type_of(){
-    echo "Content-Type: $(mimetype -b $1)"
+    echo "Content-Type: $(file --mime-type $1 | cut -d\\  -f 2)"
 }
 
 header_end(){
