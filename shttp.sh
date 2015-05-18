@@ -116,6 +116,17 @@ doPOST(){
     header_end
 }
 
+doPUT(){
+    read -p -k "$CONTENT_LENGTH" input
+    echo "$input" > "$FILE_REQUEST"
+
+    header_begin 200
+    {
+    }
+    header_end
+    
+}
+
 
 trap "echo exit;echo | nc localhost ${PORT};exit 1" HUP INT PIPE QUIT TERM
 trap "echo exit;echo | nc localhost ${PORT}" EXIT
@@ -146,7 +157,8 @@ while true; do
 
     case "${METHOD}" in
         GET) doGET;;
-        POST) doPOST;
+        POST) doPOST;;
+        PUT) doPUT;;
     esac
 
 done
